@@ -6,6 +6,7 @@
     :license: MIT, see LICENSE for more details.
 """
 import os
+import requests
 from datetime import datetime
 
 from flask import current_app
@@ -227,6 +228,7 @@ tagging = db.Table('tagging',
 class Photo(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     description = db.Column(db.String(500))
+    alternative_text = db.Column(db.String(500))
     filename = db.Column(db.String(64))
     filename_s = db.Column(db.String(64))
     filename_m = db.Column(db.String(64))
@@ -240,11 +242,48 @@ class Photo(db.Model):
     collectors = db.relationship('Collect', back_populates='collected', cascade='all')
     tags = db.relationship('Tag', secondary=tagging, back_populates='photos')
 
+    def generate_alternative_text(file):
+        key = "5a83a0eb9dea4f2c82657ac1157287c5"
+
+        endpoint = "https://mlip-lab1-anishagu.cognitiveservices.azure.com/computervision/imageanalysis:analyze"
+
+        params = {
+            'api-version': '2023-02-01-preview',
+            'features': 'tags,caption', 
+            'language': 'en', 
+            'gender-neutral-caption': 'False'
+        }
+
+        headers = {
+            'Ocp-Apim-Subscription-Key': key,
+            'Content-Type': 'application/octet-stream',
+        }
+        with open("uploads/"+file, "rb") as image_file:
+            response = requests.post(endpoint, params=params, headers=headers, data=image_file)
+
+        #os.remove(file)
+
+        if response.status_code == 200:
+            result = response.json()
+
+            caption_result = result.get('captionResult',{})
+            alternative_text = caption_result.get('text', '')
+
+            tags_result = result.get('tagsResult', {})
+            tags_values = tags_result.get('values', [])
+            tags = [tag['name'] for tag in tags_values]
+
+            #alternative_text = f"{text} (Confidence: {confidence:.2f}) - Tags: {', '.join(tags)}"
+        else:
+            alternative_text = ""
+
+        return alternative_text, tags 
 
 @whooshee.register_model('name')
 class Tag(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(64), index=True, unique=True)
+    identified_objects = db.Column(db.String(255))
 
     photos = db.relationship('Photo', secondary=tagging, back_populates='tags')
 
@@ -293,3 +332,4 @@ def delete_photos(**kwargs):
         path = os.path.join(current_app.config['ALBUMY_UPLOAD_PATH'], filename)
         if os.path.exists(path):  # not every filename map a unique file
             os.remove(path)
+              

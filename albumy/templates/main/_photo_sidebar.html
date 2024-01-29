@@ -34,6 +34,12 @@
                 {% if photo.description %}
                     {{ photo.description }}
                 {% endif %}
+                {% if photo.alternative_text %} 
+                {% set text_parts = photo.alternative_text.split('(Confidence:') %} 
+                    {{ text_parts[0].strip() }}
+                {% else %} 
+                    No alternative text available. 
+                {% endif %}
                 {% if current_user == photo.author %}
                     <a id="description-btn" href="#!">
                         <small><span class="oi oi-pencil"></span> edit description</small>
@@ -87,6 +93,7 @@
                         </a>
                     {% endfor %}
                 {% endif %}
+
             </div>
         {% endif %}
         {% if current_user.is_authenticated %}
