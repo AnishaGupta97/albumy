@@ -13,7 +13,7 @@ from flask import current_app
 from flask_avatars import Identicon
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
-
+import json
 from albumy.extensions import db, whooshee
 
 # relationship table
@@ -243,9 +243,13 @@ class Photo(db.Model):
     tags = db.relationship('Tag', secondary=tagging, back_populates='photos')
 
     def generate_alternative_text(file):
-        key = "5a83a0eb9dea4f2c82657ac1157287c5"
+        # Load the JSON file
+        with open('credentials.json', 'r') as file:
+            data = json.load(file)
 
-        endpoint = "https://mlip-lab1-anishagu.cognitiveservices.azure.com/computervision/imageanalysis:analyze"
+        # Access values using keys
+        endpoint = data['endpoint']
+        key = data['key']
 
         params = {
             'api-version': '2023-02-01-preview',
