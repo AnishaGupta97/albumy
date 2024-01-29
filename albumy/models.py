@@ -244,8 +244,8 @@ class Photo(db.Model):
 
     def generate_alternative_text(file):
         # Load the JSON file
-        with open('credentials.json', 'r') as file:
-            data = json.load(file)
+        with open('albumy/credentials.json', 'r') as f:
+            data = json.load(f)
 
         # Access values using keys
         endpoint = data['endpoint']

@@ -32,13 +32,13 @@
         <div id="description">
             <p>
                 {% if photo.description %}
-                    {{ photo.description }}
+                    {{ photo.description }}<br>
                 {% endif %}
                 {% if photo.alternative_text %} 
                 {% set text_parts = photo.alternative_text.split('(Confidence:') %} 
-                    {{ text_parts[0].strip() }}
+                    {{ text_parts[0].strip() }}<br>
                 {% else %} 
-                    No alternative text available. 
+                    No alternative text available.<br>
                 {% endif %}
                 {% if current_user == photo.author %}
                     <a id="description-btn" href="#!">
